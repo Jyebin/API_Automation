@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API 자동화 테스트 결과서 — Metademy</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', 'Malgun Gothic', sans-serif; background: #f4f6fa; color: #1a1a2e; font-size: 14px; line-height: 1.6; }
+    .page { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+
+    /* ── Header ── */
+    .report-header { background: linear-gradient(135deg, #1e3a5f 0%, #16213e 100%); color: #fff; border-radius: 12px; padding: 36px 40px; margin-bottom: 32px; }
+    .report-header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+    .report-header .meta { opacity: .75; font-size: 13px; margin-top: 6px; }
+    .report-header .meta span { margin-right: 24px; }
+
+    /* ── Summary cards ── */
+    .summary-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 32px; }
+    .card { background: #fff; border-radius: 10px; padding: 20px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .card .num { font-size: 36px; font-weight: 700; }
+    .card .lbl { font-size: 12px; color: #666; margin-top: 4px; }
+    .card.total .num  { color: #1e3a5f; }
+    .card.pass  .num  { color: #2e7d32; }
+    .card.fail  .num  { color: #c62828; }
+    .card.skip  .num  { color: #e65100; }
+    .card.suite .num  { color: #6a1b9a; }
+
+    /* ── Section ── */
+    h2 { font-size: 20px; font-weight: 600; margin: 40px 0 16px; padding-left: 12px; border-left: 4px solid #1e3a5f; }
+    h3 { font-size: 15px; font-weight: 600; margin: 28px 0 10px; color: #333; }
+
+    /* ── Failure cards ── */
+    .fail-card { background: #fff; border-radius: 10px; border-left: 5px solid #c62828; padding: 20px 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .fail-card .test-name { font-size: 15px; font-weight: 600; color: #c62828; margin-bottom: 12px; }
+    .fail-card table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .fail-card td { padding: 6px 10px; vertical-align: top; }
+    .fail-card td:first-child { width: 140px; color: #555; font-weight: 500; white-space: nowrap; }
+    .fail-card tr:not(:last-child) td { border-bottom: 1px solid #f0f0f0; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .tag.server-error { background: #ffebee; color: #c62828; }
+    .tag.biz-rule     { background: #fff3e0; color: #e65100; }
+    .tag.not-found    { background: #e8eaf6; color: #283593; }
+    .tag.validation   { background: #f3e5f5; color: #6a1b9a; }
+    .tag.method       { background: #e8f5e9; color: #1b5e20; font-family: monospace; font-size: 12px; padding: 2px 6px; }
+    code { font-family: 'Consolas', monospace; background: #f4f6fa; padding: 1px 5px; border-radius: 3px; font-size: 12.5px; }
+
+    /* ── Pass table ── */
+    .pass-section { background: #fff; border-radius: 10px; padding: 20px 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .suite-title { font-weight: 600; margin-bottom: 10px; color: #2e7d32; }
+    .pass-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .pass-table th { background: #f9fbe7; padding: 8px 12px; text-align: left; border-bottom: 2px solid #e0e0e0; color: #555; }
+    .pass-table td { padding: 7px 12px; border-bottom: 1px solid #f0f0f0; }
+    .pass-table tr:hover td { background: #fafafa; }
+    .status-pass { color: #2e7d32; font-weight: 600; }
+    .status-skip { color: #e65100; font-weight: 600; }
+
+    /* ── Cause summary ── */
+    .cause-table { width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.06); margin-bottom: 32px; }
+    .cause-table th { background: #1e3a5f; color: #fff; padding: 10px 16px; text-align: left; }
+    .cause-table td { padding: 9px 16px; border-bottom: 1px solid #f0f0f0; }
+    .cause-table tr:last-child td { border-bottom: none; }
+
+    /* ── Footer ── */
+    .footer { text-align: center; font-size: 12px; color: #aaa; margin-top: 48px; padding-top: 20px; border-top: 1px solid #e8e8e8; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ─────────────── HEADER ─────────────── -->
+  <div class="report-header">
+    <h1>API 자동화 테스트 결과서</h1>
+    <p style="opacity:.8; margin-top:6px;">대상 서버: https://metademy.raonsecure.co.kr:38000</p>
+    <div class="meta">
+      <span>생성일: 2026-08-07</span>
+      <span>프레임워크: Jest + ts-jest + axios</span>
+      <span>계정: raontestqa1</span>
+    </div>
+  </div>
+
+  <!-- ─────────────── SUMMARY ─────────────── -->
+  <div class="summary-grid">
+    <div class="card total"><div class="num">257</div><div class="lbl">전체 테스트</div></div>
+    <div class="card pass" ><div class="num">237</div><div class="lbl">통과</div></div>
+    <div class="card fail" ><div class="num">13</div><div class="lbl">실패</div></div>
+    <div class="card skip" ><div class="num">7</div><div class="lbl">스킵</div></div>
+    <div class="card suite"><div class="num">6 / 22</div><div class="lbl">실패 스위트</div></div>
+  </div>
+
+  <!-- ─────────────── 실패 원인 요약 ─────────────── -->
+  <h2>실패 원인 유형별 요약</h2>
+  <table class="cause-table">
+    <tr>
+      <th>유형</th>
+      <th>건수</th>
+      <th>HTTP 코드</th>
+      <th>해석</th>
+    </tr>
+    <tr>
+      <td><span class="tag server-error">서버 내부 오류</span></td>
+      <td>4건</td>
+      <td><code>500</code></td>
+      <td>API 엔드포인트 자체에 서버 측 버그 존재. 테스트 계정의 데이터 미존재 시 예외 처리 누락 추정.</td>
+    </tr>
+    <tr>
+      <td><span class="tag biz-rule">비즈니스 규칙 제약</span></td>
+      <td>6건</td>
+      <td><code>422</code></td>
+      <td>수강 등록 이력 없는 계정에 대해 캘린더 조회 불가. 자기 자신 ID를 타인 프로필 API로 조회 시 거부. 쿠폰 발행 불가 상태.</td>
+    </tr>
+    <tr>
+      <td><span class="tag not-found">리소스 없음 (라우팅)</span></td>
+      <td>1건</td>
+      <td><code>404</code></td>
+      <td>구매 내역 목록 조회 API가 404 반환. 엔드포인트 URL 변경 또는 라우팅 설정 오류 의심.</td>
+    </tr>
+    <tr>
+      <td><span class="tag validation">유효성 오류</span></td>
+      <td>2건</td>
+      <td><code>422</code></td>
+      <td>쿠폰 발행 가능 여부 조회 시 테스트 계정이 쿠폰 발행 조건 미충족.</td>
+    </tr>
+  </table>
+
+  <!-- ─────────────── 실패 상세 ─────────────── -->
+  <h2>실패 테스트 상세 분석</h2>
+
+  <!-- ── dashboard.spec.ts ── -->
+  <h3>1. [WebView] 대시보드 API — <code>tests/view/dashboard.spec.ts</code></h3>
+
+  <div class="fail-card">
+    <div class="test-name">❌ 학습 현황 요약 조회 (v1) &amp; 유효하지 않은 파라미터 케이스 — 각 1건</div>
+    <table>
+      <tr><td>테스트 방법</td><td>유효한 JWT를 Authorization 헤더에 담아 <code>GET /api/v1/view/dashboard/study</code> 호출. 두 번째 케이스는 무관한 파라미터 <code>{ invalid_param: 'xyz' }</code>를 추가 전송하여 서버가 무시해야 함을 검증.</td></tr>
+      <tr><td>기대 응답</td><td><code>200 OK</code> — 학습 현황 데이터 반환</td></tr>
+      <tr><td>실제 응답</td><td><code>500 Internal Server Error</code></td></tr>
+      <tr><td>실패 원인</td><td><span class="tag server-error">서버 내부 오류</span> 서버 측 예외 처리 누락. 테스트 계정(raontestqa1)에 학습 이력 데이터가 없거나, v1 엔드포인트 내부 코드에서 NULL 데이터를 처리하지 못해 500이 발생하는 것으로 추정. v2 엔드포인트(<code>/api/v2/view/dashboard/study</code>)는 동일 계정으로 <code>200</code> 반환 — v1만 영향 받음.</td></tr>
+      <tr><td>권장 조치</td><td>서버 팀에 <code>GET /api/v1/view/dashboard/study</code> 500 에러 로그 확인 요청. 학습 이력 없는 계정에 대한 NULL safety 처리 필요.</td></tr>
+    </table>
+  </div>
+
+  <div class="fail-card">
+    <div class="test-name">❌ 실습 캘린더 조회 (4건) — v1 기본, 연월 파라미터, 과거 날짜, 마이페이지</div>
+    <table>
+      <tr><td>테스트 방법</td><td>
+        유효한 JWT로 아래 4개 엔드포인트를 각각 호출:
+        <ul style="margin-top:4px; padding-left:20px;">
+          <li><code>GET /api/v1/view/dashboard/calendar</code> — 파라미터 없음</li>
+          <li><code>GET /api/v1/view/dashboard/calendar?year=2025&amp;month=01</code> — 특정 연월</li>
+          <li><code>GET /api/v1/view/dashboard/calendar?year=2020&amp;month=01</code> — 과거 날짜</li>
+          <li><code>GET /api/v1/view/dashboard/calendar/my</code> — 마이페이지 캘린더</li>
+        </ul>
+      </td></tr>
+      <tr><td>기대 응답</td><td><code>200 OK</code> — 캘린더 일정 데이터 반환 (수업 없으면 빈 배열)</td></tr>
+      <tr><td>실제 응답</td><td><code>422 Unprocessable Entity</code></td></tr>
+      <tr><td>실패 원인</td><td><span class="tag biz-rule">비즈니스 규칙 제약</span> 테스트 계정(raontestqa1)이 현재 어떤 수업에도 수강 등록되어 있지 않음. 캘린더 API가 수강 등록 이력을 필수 전제 조건으로 요구하는 것으로 보임. 수강 이력 없는 계정에 대해 200 + 빈 배열을 반환하는 것이 올바른 동작이나, 현재 422 처리하고 있어 개선 여지 있음.</td></tr>
+      <tr><td>권장 조치</td><td>테스트 계정에 실습 수업 수강 등록 처리 또는, 수강 이력 없는 계정에 대해 <code>200 + 빈 배열</code>을 반환하도록 서버 측 수정 요청.</td></tr>
+    </table>
+  </div>
+
+  <div class="fail-card">
+    <div class="test-name">❌ 실습 캘린더 조회 (v2) — 1건</div>
+    <table>
+      <tr><td>테스트 방법</td><td>유효한 JWT로 <code>GET /api/v2/view/dashboard/calendar</code> 호출</td></tr>
+      <tr><td>기대 응답</td><td><code>200 OK</code></td></tr>
+      <tr><td>실제 응답</td><td><code>422 Unprocessable Entity</code></td></tr>
+      <tr><td>실패 원인</td><td><span class="tag biz-rule">비즈니스 규칙 제약</span> v1과 동일. v2에서도 수강 등록 이력 필수.</td></tr>
+    </table>
+  </div>
+
+  <!-- ── profile.spec.ts ── -->
+  <h3>2. [회원] 내 프로필 API — <code>tests/member/profile.spec.ts</code></h3>
+
+  <div class="fail-card">
+    <div class="test-name">❌ 타인 프로필 조회 — 자기 자신 user_id 조회 — 1건</div>
+    <table>
+      <tr><td>테스트 방법</td><td>먼저 <code>GET /api/v1/member/my/profile</code>로 자신의 <code>userid</code>를 획득한 뒤, 해당 userid를 <code>GET /api/v1/member/others/profile?user_id={userid}</code>에 전달하여 자기 자신을 타인 프로필 API로 조회.</td></tr>
+      <tr><td>기대 응답</td><td><code>200 OK</code> — 자신의 공개 프로필 정보 반환 (또는 400 자기자신 조회 불가 오류)</td></tr>
+      <tr><td>실제 응답</td><td><code>422 Unprocessable Entity</code></td></tr>
+      <tr><td>실패 원인</td><td><span class="tag biz-rule">비즈니스 규칙 제약</span> 서버가 타인 프로필 API로 자기 자신 조회를 허용하지 않음. 이는 설계 상 의도된 제한일 수 있음. 다만 오류 코드가 <code>422</code>인데, 명확한 비즈니스 규칙 거부라면 <code>400 Bad Request</code>가 더 적절한 코드임. 테스트 계정으로는 이 시나리오를 정상 통과시키기 어려움 (자신의 ID만 알고 있음).</td></tr>
+      <tr><td>권장 조치</td><td>타인 ID로 조회할 수 있는 별도 테스트 계정 추가 또는 서버 팀에 자기 자신 조회 시 <code>422</code> 대신 <code>400</code> + 명확한 오류 메시지 반환 요청.</td></tr>
+    </table>
+  </div>
+
+  <!-- ── study.spec.ts ── -->
+  <h3>3. [회원] 학습 현황 API — <code>tests/member/study.spec.ts</code></h3>
+
+  <div class="fail-card">
+    <div class="test-name">❌ 내 학습 현황 목록 조회 (v1) — 1건</div>
+    <table>
+      <tr><td>테스트 방법</td><td>유효한 JWT로 <code>GET /api/v1/member/my/study/classes?page=1&amp;size=10</code> 호출. 응답 배열에서 첫 번째 수업 코드를 이후 상세 조회 테스트에 사용 예정.</td></tr>
+      <tr><td>기대 응답</td><td><code>200 OK</code> — 수강 중인 수업 목록 (빈 배열도 허용)</td></tr>
+      <tr><td>실제 응답</td><td><code>500 Internal Server Error</code></td></tr>
+      <tr><td>실패 원인</td><td><span class="tag server-error">서버 내부 오류</span> v1 엔드포인트에서 수강 이력 없는 계정 조회 시 내부 예외 발생. v2(<code>/api/v2/member/my/study</code>)는 동일 계정에서 <code>200</code> 반환. v1만 영향 받음.</td></tr>
+      <tr><td>권장 조치</td><td>서버 팀에 <code>GET /api/v1/member/my/study/classes</code> 500 오류 원인 확인 요청. 수강 이력 없는 계정에 대해 빈 목록 반환하도록 수정 필요.</td></tr>
+    </table>
+  </div>
+
+  <div class="fail-card">
+    <div class="test-name">❌ 내 배지 즐겨찾기 목록 조회 (v2) — 1건</div>
+    <table>
+      <tr><td>테스트 방법</td><td>유효한 JWT로 <code>GET /api/v2/member/my/badge/favorites</code> 호출. 즐겨찾기한 배지가 없으면 빈 배열 반환 기대.</td></tr>
+      <tr><td>기대 응답</td><td><code>200 OK</code></td></tr>
+      <tr><td>실제 응답</td><td><code>500 Internal Server Error</code></td></tr>
+      <tr><td>실패 원인</td><td><span class="tag server-error">서버 내부 오류</span> 배지 즐겨찾기가 없는 계정 조회 시 서버 예외 처리 누락. v1 엔드포인트(<code>/api/v1/member/my/badge/favorites</code>)는 동일 계정에서 <code>200</code> 반환 — v2만 영향.</td></tr>
+      <tr><td>권장 조치</td><td>서버 팀에 <code>GET /api/v2/member/my/badge/favorites</code> 500 오류 확인 요청. 즐겨찾기 없는 경우 빈 배열 반환 처리 필요.</td></tr>
+    </table>
+  </div>
+
+  <!-- ── badge.spec.ts ── -->
+  <h3>4. [WebView] 배지 API — <code>tests/view/badge.spec.ts</code></h3>
+
+  <div class="fail-card">
+    <div class="test-name">❌ 배지 목록 조회 (v1) — 1건</div>
+    <table>
+      <tr><td>테스트 방법</td><td>유효한 JWT로 <code>GET /api/v1/view/badge/list?page=1&amp;size=10</code> 호출. 응답 배열에서 첫 번째 배지 ID를 이후 상세·수료증 조회 테스트에 사용 예정.</td></tr>
+      <tr><td>기대 응답</td><td><code>200 OK</code> — 배지 목록 (획득한 배지 없으면 빈 배열)</td></tr>
+      <tr><td>실제 응답</td><td><code>500 Internal Server Error</code></td></tr>
+      <tr><td>실패 원인</td><td><span class="tag server-error">서버 내부 오류</span> v1 배지 목록 엔드포인트에서 배지 획득 이력 없는 계정 조회 시 예외 발생. v2 배지 목록(<code>/api/v2/view/badge/list</code>)은 동일 계정에서 <code>200</code> 반환 — v1만 영향.</td></tr>
+      <tr><td>권장 조치</td><td>서버 팀에 <code>GET /api/v1/view/badge/list</code> 500 오류 확인 요청. 배지 미획득 계정에 빈 배열 반환 처리 필요.</td></tr>
+    </table>
+  </div>
+
+  <!-- ── order.spec.ts ── -->
+  <h3>5. [회원] 구매 내역 API — <code>tests/member/order.spec.ts</code></h3>
+
+  <div class="fail-card">
+    <div class="test-name">❌ 구매 내역 목록 조회 (v1) — 1건</div>
+    <table>
+      <tr><td>테스트 방법</td><td>유효한 JWT로 <code>GET /api/v1/member/my/order?page=1&amp;size=10</code> 호출.</td></tr>
+      <tr><td>기대 응답</td><td><code>200 OK</code> — 구매 내역 목록 (구매 없으면 빈 배열)</td></tr>
+      <tr><td>실제 응답</td><td><code>404 Not Found</code></td></tr>
+      <tr><td>실패 원인</td><td><span class="tag not-found">리소스 없음</span> 엔드포인트가 <code>404</code>를 반환. 가능한 원인: ① 라우팅 미등록(URL 오류), ② 엔드포인트가 서버에서 삭제되었거나 경로가 변경됨, ③ 전체 테스트 실행 중 인증 토큰 만료 또는 서버 순간적 오류. v2(<code>/api/v2/member/my/order</code>)는 동일 시점 <code>200</code> 반환 성공 — v1만 영향.</td></tr>
+      <tr><td>권장 조치</td><td>스웨거에서 <code>GET /api/v1/member/my/order</code> 엔드포인트 현재 존재 여부 확인. URL이 변경되었다면 API 래퍼 <code>src/apis/member.api.ts</code>의 경로 수정 필요.</td></tr>
+    </table>
+  </div>
+
+  <!-- ── coupon.spec.ts ── -->
+  <h3>6. [쿠폰] API — <code>tests/coupon/coupon.spec.ts</code></h3>
+
+  <div class="fail-card">
+    <div class="test-name">❌ 쿠폰 발행 가능 여부 조회 — 1건</div>
+    <table>
+      <tr><td>테스트 방법</td><td>유효한 JWT로 <code>GET /api/v2/coupon/issue/available</code> 호출. 현재 발행 가능한 쿠폰 여부를 조회.</td></tr>
+      <tr><td>기대 응답</td><td><code>200 OK</code> — 쿠폰 발행 가능 여부 데이터</td></tr>
+      <tr><td>실제 응답</td><td><code>422 Unprocessable Entity</code></td></tr>
+      <tr><td>실패 원인</td><td><span class="tag biz-rule">비즈니스 규칙 제약</span> 테스트 계정(raontestqa1)이 현재 쿠폰 발행 가능 조건을 충족하지 못함. 수강 중인 강좌가 없거나 대상 쿠폰이 없는 경우 서버가 422로 거부하는 것으로 추정. 조건 충족 불가 시 200 + 빈 결과 반환이 더 적절한 API 설계.</td></tr>
+      <tr><td>권장 조치</td><td>쿠폰 발행 가능 조건 없어도 <code>200 + { available: false }</code> 형태로 반환하도록 서버 측 수정 요청 또는, 테스트 계정에 쿠폰 발행 가능 강좌 등록 처리.</td></tr>
+    </table>
+  </div>
+
+  <!-- ─────────────── 통과 테스트 요약 ─────────────── -->
+  <h2>통과 테스트 스위트 요약 (16개)</h2>
+
+  <!-- auth -->
+  <div class="pass-section">
+    <div class="suite-title">✅ 인증 API — tests/auth/</div>
+    <table class="pass-table">
+      <tr><th>테스트 파일</th><th>테스트 이름</th><th>검증 내용</th><th>상태</th></tr>
+      <tr><td>login.spec.ts</td><td>로그인 성공</td><td>200, access_token 존재, 형식 확인</td><td class="status-pass">PASS</td></tr>
+      <tr><td>login.spec.ts</td><td>잘못된 비밀번호 로그인</td><td>401/400 응답</td><td class="status-pass">PASS</td></tr>
+      <tr><td>token.spec.ts</td><td>토큰 갱신, 인증 없이 갱신 시도</td><td>200, 401/403</td><td class="status-pass">PASS</td></tr>
+      <tr><td>find-id.spec.ts</td><td>아이디 찾기 (이메일), 잘못된 형식</td><td>200/400, not 500</td><td class="status-pass">PASS</td></tr>
+      <tr><td>find-password.spec.ts</td><td>비밀번호 찾기, 없는 아이디, SQL Injection</td><td>200/400, not 200, not 500</td><td class="status-pass">PASS</td></tr>
+    </table>
+  </div>
+
+  <!-- member profile -->
+  <div class="pass-section">
+    <div class="suite-title">✅ [회원] 프로필 API — tests/member/profile.spec.ts (1건 실패 제외)</div>
+    <table class="pass-table">
+      <tr><th>테스트 이름</th><th>검증 내용</th><th>상태</th></tr>
+      <tr><td>내 프로필 조회</td><td>200, userid 존재, v1 포맷 확인</td><td class="status-pass">PASS</td></tr>
+      <tr><td>닉네임 수정</td><td>200 반환</td><td class="status-pass">PASS</td></tr>
+      <tr><td>빈 닉네임 수정</td><td>not 200 (오류 응답)</td><td class="status-pass">PASS</td></tr>
+      <tr><td>200자 닉네임 수정</td><td>not 200 또는 200 + 서버 처리</td><td class="status-pass">PASS</td></tr>
+      <tr><td>비밀번호 검증 (올바름/틀림/빈값)</td><td>200, not 200</td><td class="status-pass">PASS</td></tr>
+      <tr><td>탈퇴 사유 목록</td><td>200, 배열 확인</td><td class="status-pass">PASS</td></tr>
+      <tr><td>v2 프로필 조회</td><td>200 반환</td><td class="status-pass">PASS</td></tr>
+      <tr><td>미인증 프로필 조회</td><td>401/403 반환</td><td class="status-pass">PASS</td></tr>
+      <tr><td>존재하지 않는 user_id 조회</td><td>[400,404,422] 포함</td><td class="status-pass">PASS</td></tr>
+      <tr><td>회원 탈퇴 / 비밀번호 변경</td><td>파괴적 작업 — 수동 테스트 필요</td><td class="status-skip">SKIP</td></tr>
+    </table>
+  </div>
+
+  <!-- member order (pass) -->
+  <div class="pass-section">
+    <div class="suite-title">✅ [회원] 구매 내역 API — tests/member/order.spec.ts (1건 실패 제외)</div>
+    <table class="pass-table">
+      <tr><th>테스트 이름</th><th>검증 내용</th><th>상태</th></tr>
+      <tr><td>구매 취소 사유 목록 (v1)</td><td>200, 배열 확인</td><td class="status-pass">PASS</td></tr>
+      <tr><td>없는 주문번호 상세 조회</td><td>not 200</td><td class="status-pass">PASS</td></tr>
+      <tr><td>500자 주문번호 조회</td><td>not 200, not 500</td><td class="status-pass">PASS</td></tr>
+      <tr><td>page=0, size=0, page=999999 조회</td><td>[200,400,422,500] 허용</td><td class="status-pass">PASS</td></tr>
+      <tr><td>구매 내역 목록 (v2)</td><td>200 반환</td><td class="status-pass">PASS</td></tr>
+      <tr><td>취소 사유 목록 (v2)</td><td>200 반환</td><td class="status-pass">PASS</td></tr>
+      <tr><td>내 쿠폰 목록</td><td>200 반환</td><td class="status-pass">PASS</td></tr>
+      <tr><td>미인증 구매 내역 조회</td><td>401/403 반환</td><td class="status-pass">PASS</td></tr>
+    </table>
+  </div>
+
+  <!-- lecture -->
+  <div class="pass-section">
+    <div class="suite-title">✅ [강의] API — tests/lecture/</div>
+    <table class="pass-table">
+      <tr><th>테스트 파일</th><th>주요 테스트</th><th>상태</th></tr>
+      <tr><td>intro.spec.ts</td><td>강의 카테고리, 배너, 강의 목록 (v1/v2), 페이지네이션, 음수 ID, 빈 파라미터, 미인증</td><td class="status-pass">PASS</td></tr>
+      <tr><td>building.spec.ts</td><td>강의동 목록/상세/층 조회, 없는 ID, 500자 ID, 미인증</td><td class="status-pass">PASS</td></tr>
+      <tr><td>training.spec.ts</td><td>실습 수업 목록, 없는 수업 코드, 미인증</td><td class="status-pass">PASS</td></tr>
+    </table>
+  </div>
+
+  <!-- board -->
+  <div class="pass-section">
+    <div class="suite-title">✅ [게시판] API — tests/board/</div>
+    <table class="pass-table">
+      <tr><th>테스트 파일</th><th>주요 테스트</th><th>상태</th></tr>
+      <tr><td>notice.spec.ts</td><td>카테고리(v1/v2), 목록/상세(v1/v2), 없는 ID, 음수 ID, 미인증</td><td class="status-pass">PASS</td></tr>
+      <tr><td>faq.spec.ts</td><td>FAQ 목록/상세 (v1/v2), 카테고리 필터, 없는 ID, 미인증</td><td class="status-pass">PASS</td></tr>
+      <tr><td>event.spec.ts</td><td>이벤트 목록/상세, 없는 ID, 음수 ID, 미인증</td><td class="status-pass">PASS</td></tr>
+    </table>
+  </div>
+
+  <!-- cp -->
+  <div class="pass-section">
+    <div class="suite-title">✅ [CP] 실습 API — tests/cp/training.spec.ts</div>
+    <table class="pass-table">
+      <tr><th>주요 테스트</th><th>상태</th></tr>
+      <tr><td>실습 수업 목록 조회, 없는 수업 코드, 미인증(401/403/422)</td><td class="status-pass">PASS</td></tr>
+    </table>
+  </div>
+
+  <!-- view qna/dashboard pass -->
+  <div class="pass-section">
+    <div class="suite-title">✅ [WebView] Q&amp;A API — tests/view/qna.spec.ts</div>
+    <table class="pass-table">
+      <tr><th>주요 테스트</th><th>상태</th></tr>
+      <tr><td>Q&A 목록(v1/v2), Q&A 등록, 빈 제목/내용, 1000자 제목, 상세 조회, 없는 ID, 수정, 없는 ID 수정, 미인증</td><td class="status-pass">PASS</td></tr>
+      <tr><td>Q&A 삭제 — 파괴적 작업</td><td class="status-skip">SKIP</td></tr>
+    </table>
+  </div>
+
+  <!-- event -->
+  <div class="pass-section">
+    <div class="suite-title">✅ [이벤트] API — tests/event/event.spec.ts</div>
+    <table class="pass-table">
+      <tr><th>주요 테스트</th><th>상태</th></tr>
+      <tr><td>이벤트 조회, 참여, 출석, 스크래치 (음수/없는 ID 포함), 미인증</td><td class="status-pass">PASS</td></tr>
+    </table>
+  </div>
+
+  <!-- coupon pass -->
+  <div class="pass-section">
+    <div class="suite-title">✅ [쿠폰] API — tests/coupon/coupon.spec.ts (1건 실패 제외)</div>
+    <table class="pass-table">
+      <tr><th>주요 테스트</th><th>상태</th></tr>
+      <tr><td>연동 상품 목록, 빈 코드, 공백 코드, 특수문자, 500자 코드, 숫자 코드, 미인증</td><td class="status-pass">PASS</td></tr>
+    </table>
+  </div>
+
+  <!-- files -->
+  <div class="pass-section">
+    <div class="suite-title">✅ [파일] API — tests/files/files.spec.ts</div>
+    <table class="pass-table">
+      <tr><th>주요 테스트</th><th>상태</th></tr>
+      <tr><td>파일 업로드 초기화, 빈 파라미터, 음수 크기, 500자 파일명, 경로 순회 공격, 잘못된 MIME, 클라이언트 파일 조회, 미인증</td><td class="status-pass">PASS</td></tr>
+    </table>
+  </div>
+
+  <!-- etc -->
+  <div class="pass-section">
+    <div class="suite-title">✅ [기타] API — tests/etc/ping.spec.ts &amp; service.spec.ts</div>
+    <table class="pass-table">
+      <tr><th>주요 테스트</th><th>상태</th></tr>
+      <tr><td>서버 ping, NPC, 비속어, 시험 목록/상세, 음수 시험 ID, 미인증 (ping.spec.ts)</td><td class="status-pass">PASS</td></tr>
+      <tr><td>서비스 문의 카테고리, 빈 내용, 유효하지 않은 이메일, 1000자 제목, 5000자 내용, SQL Injection, 매뉴얼 목록/상세 (service.spec.ts)</td><td class="status-pass">PASS</td></tr>
+    </table>
+  </div>
+
+  <!-- ─────────────── 서버 측 버그 정리 ─────────────── -->
+  <h2>서버 측 버그 목록 (테스트로 발견된 결함)</h2>
+  <table class="cause-table">
+    <tr>
+      <th>#</th>
+      <th>엔드포인트</th>
+      <th>예상 동작</th>
+      <th>실제 응답</th>
+      <th>영향 범위</th>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td><code>GET /api/v1/view/dashboard/study</code></td>
+      <td>수강 이력 없어도 200 + 데이터 반환</td>
+      <td><code>500</code></td>
+      <td>v1만 영향. v2는 정상.</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><code>GET /api/v1/view/dashboard/calendar</code> (및 파생 3개)</td>
+      <td>수강 이력 없으면 200 + 빈 배열</td>
+      <td><code>422</code></td>
+      <td>v1 + v2 모두 영향. 수강 없는 계정 전체.</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><code>GET /api/v1/member/my/study/classes</code></td>
+      <td>수강 이력 없어도 200 + 빈 배열</td>
+      <td><code>500</code></td>
+      <td>v1만 영향. v2는 정상.</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><code>GET /api/v2/member/my/badge/favorites</code></td>
+      <td>즐겨찾기 없어도 200 + 빈 배열</td>
+      <td><code>500</code></td>
+      <td>v2만 영향. v1은 정상.</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td><code>GET /api/v1/view/badge/list</code></td>
+      <td>배지 없어도 200 + 빈 배열</td>
+      <td><code>500</code></td>
+      <td>v1만 영향. v2는 정상.</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td><code>GET /api/v1/member/my/order</code></td>
+      <td>구매 없어도 200 + 빈 배열</td>
+      <td><code>404</code></td>
+      <td>v1만 영향. v2는 정상. URL 변경 가능성.</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td><code>GET /api/v2/coupon/issue/available</code></td>
+      <td>쿠폰 없어도 200 + 발행불가 상태 반환</td>
+      <td><code>422</code></td>
+      <td>쿠폰 발행 조건 없는 계정.</td>
+    </tr>
+  </table>
+
+  <!-- ─────────────── 스킵 목록 ─────────────── -->
+  <h2>스킵(SKIP) 테스트 목록 — 파괴적 작업</h2>
+  <table class="cause-table">
+    <tr><th>테스트 이름</th><th>파일</th><th>스킵 사유</th></tr>
+    <tr><td>회원 탈퇴</td><td>profile.spec.ts</td><td>실행 시 테스트 계정 삭제됨 — 수동 테스트 필요</td></tr>
+    <tr><td>비밀번호 변경</td><td>profile.spec.ts</td><td>이후 전체 테스트 인증 실패 유발</td></tr>
+    <tr><td>Q&A 삭제</td><td>qna.spec.ts</td><td>등록 후 즉시 삭제 시 다음 실행에서 상세 조회 불가</td></tr>
+    <tr><td>주문 취소</td><td>order.spec.ts</td><td>실제 결제 완료 주문 필요. 테스트 계정에 주문 없음.</td></tr>
+    <tr><td>CP 실습 시작 / 종료 / 채점</td><td>cp/training.spec.ts 일부</td><td>실습 서버 연결 필요 — 환경 의존성 높음</td></tr>
+    <tr><td>파일 업로드 완료 (멀티파트)</td><td>files.spec.ts 일부</td><td>실제 바이너리 청크 전송 필요</td></tr>
+    <tr><td>출석 체크 / 이벤트 참여</td><td>event.spec.ts 일부</td><td>서버 상태 의존. 중복 참여 시 409 처리.</td></tr>
+  </table>
+
+  <!-- ─────────────── 테스트 환경 ─────────────── -->
+  <h2>테스트 환경 정보</h2>
+  <table class="cause-table">
+    <tr><th>항목</th><th>내용</th></tr>
+    <tr><td>대상 서버</td><td>https://metademy.raonsecure.co.kr:38000 (TLS 인증서 검증 비활성화)</td></tr>
+    <tr><td>테스트 계정</td><td>raontestqa1 / RaontestQa1! (수강 이력 없음, 배지 없음, 구매 없음)</td></tr>
+    <tr><td>프레임워크</td><td>Jest 29 + ts-jest + axios</td></tr>
+    <tr><td>실행 방식</td><td>maxWorkers: 1 (직렬 실행 — 서버 부하 방지)</td></tr>
+    <tr><td>인증 방식</td><td>globalSetup에서 로그인 후 JWT Bearer 토큰을 process.env.__ACCESS_TOKEN__ 공유</td></tr>
+    <tr><td>응답 처리</td><td>validateStatus: () => true — HTTP 에러도 throw 없이 응답 객체로 수신</td></tr>
+    <tr><td>스위트 수</td><td>22개 파일 / 257개 테스트 케이스</td></tr>
+    <tr><td>실행 시간</td><td>약 1.5초 (직렬)</td></tr>
+  </table>
+
+  <div class="footer">
+    API 자동화 테스트 결과서 · 생성일: 2026-08-07 · 도구: Jest + axios (API_Automation 프로젝트)
+  </div>
+
+</div>
+</body>
+</html>
