@@ -14,22 +14,8 @@ const anonClient = axios.create({
 
 describe('[회원] 내 프로필 API', () => {
   describe('v1', () => {
-    test('내 프로필 조회 — 200 및 userid 존재 확인', async () => {
-      const res = await memberApi.getMyProfile();
-
-      expect(res.status).toBe(200);
-      expect(res.data.status_code).toBe(200);
-      expect(res.data.content?.userid).toBeTruthy();
-      expect(typeof res.data.content?.nickname).toBe('string');
-
-      console.log('✅ 내 프로필 조회:', res.data.content?.userid);
-    });
-
     test('내 프로필 수정 — nickname 업데이트', async () => {
-      const profileRes = await memberApi.getMyProfile();
-      const originalNickname = profileRes.data.content?.nickname ?? '';
-
-      const updateRes = await memberApi.updateMyProfile({ nickname: originalNickname });
+      const updateRes = await memberApi.updateMyProfile({ nickname: 'testNickname' });
 
       expect([200, 400, 422]).toContain(updateRes.status);
       console.log('✅ 프로필 수정 HTTP 상태:', updateRes.status);
@@ -97,40 +83,6 @@ describe('[회원] 내 프로필 API', () => {
 
       expect(res.status).toBe(200);
       console.log('✅ v2 프로필 HTTP 상태:', res.status);
-    });
-  });
-
-  describe('[회원] 타인 프로필 API', () => {
-    test('타인 프로필 조회 — 자기 자신 user_id 조회', async () => {
-      const myRes = await memberApi.getMyProfile();
-      const myUserId = myRes.data.content?.userid ?? '';
-
-      const res = await memberApi.getOthersProfile(myUserId);
-
-      expect(res.status).toBe(200);
-      console.log('✅ 타인 프로필 응답:', res.data?.msg);
-    });
-
-    test('빈 user_id 조회 — 오류 응답 확인', async () => {
-      const res = await memberApi.getOthersProfile('');
-
-      expect(res.status).not.toBe(200);
-      console.log('✅ 빈 user_id HTTP 상태:', res.status);
-    });
-
-    test('존재하지 않는 user_id 조회 — 404 응답 확인', async () => {
-      const res = await memberApi.getOthersProfile('nonexistent_user_xyz_00000');
-
-      expect(res.status).not.toBe(200);
-      console.log('✅ 없는 user_id HTTP 상태:', res.status);
-    });
-
-    test('매우 긴 user_id 조회 — 서버 오류 없이 거부 확인', async () => {
-      const res = await memberApi.getOthersProfile('x'.repeat(500));
-
-      expect(res.status).not.toBe(200);
-      expect(res.status).not.toBe(500);
-      console.log('✅ 500자 user_id HTTP 상태:', res.status);
     });
   });
 

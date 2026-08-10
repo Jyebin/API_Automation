@@ -1,7 +1,6 @@
 import apiClient from '@/client/apiClient';
 import type {
   NoticeCategoryListResponse,
-  NoticeListResponse,
   NoticeDetailResponse,
   FaqCategoryListResponse,
   FaqListResponse,
@@ -15,9 +14,6 @@ export const boardApi = {
   // ── 공지사항 (v1, PUBLIC) ─────────────────────────────────────────────
   getNoticeCategories: () =>
     apiClient.get<NoticeCategoryListResponse>('/api/v1/board/notice/whole/category'),
-
-  getNotices: (params?: { page?: number; size?: number; category?: string }) =>
-    apiClient.get<NoticeListResponse>('/api/v1/board/notice/whole', { params }),
 
   getNoticeDetail: (board_id: number | string) =>
     apiClient.get<NoticeDetailResponse>(`/api/v1/board/notice/whole/${board_id}`),
@@ -46,9 +42,6 @@ export const boardApi = {
   // ── 공지사항 (v2, PUBLIC) ─────────────────────────────────────────────
   getNoticeCategoriesV2: () =>
     apiClient.get('/api/v2/board/notice/whole/category'),
-
-  getNoticesV2: (params?: { page?: number; size?: number; category?: string }) =>
-    apiClient.get('/api/v2/board/notice/whole', { params }),
 
   getNoticeDetailV2: (noticeId: number | string) =>
     apiClient.get(`/api/v2/board/notice/whole/${noticeId}`),

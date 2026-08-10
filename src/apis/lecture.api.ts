@@ -6,10 +6,6 @@ import type {
   BannerListResponse,
   CategoryFirstListResponse,
   CategorySecondListResponse,
-  BuildingListResponse,
-  BuildingDetailResponse,
-  BuildingFloorDetailResponse,
-  TrainingContentsResponse,
 } from '@/types/lecture.types';
 
 export const lectureApi = {
@@ -37,19 +33,6 @@ export const lectureApi = {
 
   getBanner: () =>
     apiClient.get<BannerListResponse>('/api/v1/lecture/intro/banner'),
-
-  // ── 강의동 (v1, AUTH) ─────────────────────────────────────────────────
-  getBuildings: () =>
-    apiClient.get<BuildingListResponse>('/api/v1/lecture/building'),
-
-  getBuildingDetail: (id: string) =>
-    apiClient.get<BuildingDetailResponse>(`/api/v1/lecture/building/${id}`),
-
-  getBuildingFloor: (id: string, floor_id: string) =>
-    apiClient.get<BuildingFloorDetailResponse>(`/api/v1/lecture/building/${id}/floor/${floor_id}`),
-
-  getTrainingContents: (contents_id: string) =>
-    apiClient.get<TrainingContentsResponse>(`/api/v1/lecture/training/contents/${contents_id}`),
 
   // ── 소개 페이지 (v2, PUBLIC) ──────────────────────────────────────────
   getIntroContentsV2: (params?: { page?: number; size?: number; category?: string }) =>

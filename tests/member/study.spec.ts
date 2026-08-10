@@ -59,19 +59,6 @@ describe('[회원] 학습 현황 API', () => {
       console.log('✅ SQL Injection 수업 코드 HTTP 상태:', res.status);
     });
 
-    test('내 배지 즐겨찾기 목록 조회', async () => {
-      const res = await memberApi.getMyBadgeFavorites();
-
-      expect(res.status).toBe(200);
-      console.log('✅ 배지 즐겨찾기 HTTP 상태:', res.status);
-    });
-
-    test('토큰 유효기간 확인', async () => {
-      const res = await memberApi.getTokenValidity();
-
-      expect(res.status).toBe(200);
-      console.log('✅ 토큰 유효기간 HTTP 상태:', res.status);
-    });
   });
 
   describe('v1 — 페이지네이션 경계값', () => {

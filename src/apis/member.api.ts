@@ -1,23 +1,16 @@
 import apiClient from '@/client/apiClient';
 import type {
-  MyProfileResponse,
-  OthersProfileResponse,
   OrderListResponse,
   OrderDetailResponse,
   CancelReasonListResponse,
   WithdrawalReasonListResponse,
   StudyClassListResponse,
   StudyClassDetailResponse,
-  BadgeFavoriteListResponse,
   CouponListResponse,
-  WebViewUrlResponse,
 } from '@/types/member.types';
 
 export const memberApi = {
   // ── 내 정보 (v1) ──────────────────────────────────────────────────────
-  getMyProfile: () =>
-    apiClient.get<MyProfileResponse>('/api/v1/member/my/profile'),
-
   updateMyProfile: (body: Record<string, unknown>) =>
     apiClient.put('/api/v1/member/my/profile', body),
 
@@ -45,26 +38,14 @@ export const memberApi = {
   cancelOrder: (order_no: string, body: { reason: string; reason_direct?: string }) =>
     apiClient.post(`/api/v1/member/my/order/${order_no}/cancel`, body),
 
-  getMyWebViewUrl: (web_view: string) =>
-    apiClient.get<WebViewUrlResponse>(`/api/v1/member/my/${web_view}`),
-
   getMySsoToken: () =>
     apiClient.get('/api/v1/member/my/sso/token'),
-
-  getMyBadgeFavorites: () =>
-    apiClient.get<BadgeFavoriteListResponse>('/api/v1/member/my/badge/favorites'),
 
   getMyStudyClasses: (params?: { page?: number; size?: number }) =>
     apiClient.get<StudyClassListResponse>('/api/v1/member/my/study/classes', { params }),
 
   getMyStudyClassDetail: (class_code: string) =>
     apiClient.get<StudyClassDetailResponse>(`/api/v1/member/my/study/classes/${class_code}`),
-
-  getTokenValidity: () =>
-    apiClient.get('/api/v1/member/token'),
-
-  getOthersProfile: (user_id: string) =>
-    apiClient.get<OthersProfileResponse>('/api/v1/member/others/profile', { params: { user_id } }),
 
   // ── 내 정보 (v2) ──────────────────────────────────────────────────────
   getMyProfileV2: () =>
@@ -81,9 +62,6 @@ export const memberApi = {
 
   getMyCoupons: (params?: { page?: number; size?: number }) =>
     apiClient.get<CouponListResponse>('/api/v2/member/my/coupon', { params }),
-
-  getMyWebViewUrlV2: (webView: string) =>
-    apiClient.get(`/api/v2/member/my/${webView}`),
 
   getMyBadgeFavoritesV2: () =>
     apiClient.get('/api/v2/member/my/badge/favorites'),

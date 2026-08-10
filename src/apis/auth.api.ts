@@ -1,16 +1,10 @@
 import apiClient from '@/client/apiClient';
 import type { LoginResponse } from '@/types/api';
-import type { TokenRenewalResponse, FindIdResponse, DuplicateCheckResponse } from '@/types/auth.types';
+import type { FindIdResponse, DuplicateCheckResponse } from '@/types/auth.types';
 
 export const authApi = {
   login: (userid: string, password: string) =>
     apiClient.post<LoginResponse>('/api/v1/member/auth/login/basic', { userid, password }),
-
-  refreshToken: (refresh_token: string) =>
-    apiClient.post<TokenRenewalResponse>('/api/v1/member/auth/token', { refresh_token }),
-
-  logout: () =>
-    apiClient.post('/api/v1/member/logout'),
 
   checkDuplicate: (params: { type: 'email' | 'userid'; value: string }) =>
     apiClient.get<DuplicateCheckResponse>('/api/v1/member/auth/join/exists', { params }),
@@ -36,6 +30,4 @@ export const authApi = {
   getDidQr: () =>
     apiClient.get('/api/v1/member/auth/did/qr'),
 
-  getOacxWebView: (body: Record<string, string>) =>
-    apiClient.post('/api/v1/member/auth/oacx/web-view', body),
 };
