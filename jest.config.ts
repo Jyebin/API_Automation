@@ -13,6 +13,19 @@ const config: Config = {
   verbose: true,
   collectCoverageFrom: ['src/**/*.ts'],
   maxWorkers: 1,
+  reporters: [
+    'default',
+    [
+      'jest-html-reporter',
+      {
+        outputPath: 'jest-result.html',
+        pageTitle: 'Metademy API 테스트 결과',
+        includeFailureMsg: true,
+        includeConsoleLog: false,
+        sort: 'status',
+      },
+    ],
+  ],
 };
 
 export default config;
