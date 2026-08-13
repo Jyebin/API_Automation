@@ -43,6 +43,9 @@ export const boardApi = {
   getNoticeCategoriesV2: () =>
     apiClient.get('/api/v2/board/notice/whole/category'),
 
+  getNoticesV2: (params?: { page?: number; page_size?: number; category?: string }) =>
+    apiClient.get('/api/v2/board/notice/whole', { params }),
+
   getNoticeDetailV2: (noticeId: number | string) =>
     apiClient.get(`/api/v2/board/notice/whole/${noticeId}`),
 

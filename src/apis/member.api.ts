@@ -74,4 +74,7 @@ export const memberApi = {
 
   cancelOrderV2: (orderNo: string, body: { reason: string; reason_direct?: string }) =>
     apiClient.post(`/api/v2/member/my/order/${orderNo}/cancel`, body),
+
+  getMyWebView: (webView: string) =>
+    apiClient.get(`/api/v2/member/my/${webView}`),
 };

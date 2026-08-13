@@ -27,6 +27,9 @@ export const authApi = {
   resetPassword: (body: { token: string; password: string }) =>
     apiClient.put('/api/v1/member/auth/find/pwd', body),
 
+  loginSocial: (provider_type: string, body: Record<string, string>) =>
+    apiClient.post(`/api/v1/member/auth/login/social/${provider_type}`, body),
+
   getDidQr: () =>
     apiClient.get('/api/v1/member/auth/did/qr'),
 
