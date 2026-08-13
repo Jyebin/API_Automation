@@ -30,6 +30,20 @@ describe('[게시판] 공지사항 API', () => {
   });
 
   describe('v2', () => {
+    test('공지사항 목록 조회 (v2) — page_size=6', async () => {
+      const res = await boardApi.getNoticesV2({ page_size: 6 });
+
+      expect(res.status).toBe(200);
+      console.log('✅ v2 공지사항 목록 HTTP 상태:', res.status);
+    });
+
+    test('공지사항 목록 조회 (v2) — 파라미터 없이', async () => {
+      const res = await boardApi.getNoticesV2();
+
+      expect([200, 422]).toContain(res.status);
+      console.log('✅ v2 공지사항 목록(파라미터 없음) HTTP 상태:', res.status);
+    });
+
     test('공지사항 카테고리 목록 조회 (v2)', async () => {
       const res = await boardApi.getNoticeCategoriesV2();
 
