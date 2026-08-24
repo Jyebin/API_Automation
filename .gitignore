@@ -4,4 +4,4 @@ dist/
 *.log
 test-results.json
 coverage/
-jest-result.html
+test-report.html

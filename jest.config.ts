@@ -18,7 +18,7 @@ const config: Config = {
     [
       'jest-html-reporter',
       {
-        outputPath: 'jest-result.html',
+        outputPath: 'test-report.html',
         pageTitle: 'Metademy API 테스트 결과',
         includeFailureMsg: true,
         includeConsoleLog: false,
