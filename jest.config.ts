@@ -16,14 +16,8 @@ const config: Config = {
   reporters: [
     'default',
     [
-      'jest-html-reporter',
-      {
-        outputPath: 'test-report.html',
-        pageTitle: 'Metademy API 테스트 결과',
-        includeFailureMsg: true,
-        includeConsoleLog: false,
-        sort: 'status',
-      },
+      '<rootDir>/src/reporters/html-reporter.js',
+      { outputPath: 'test-report.html' },
     ],
   ],
 };
