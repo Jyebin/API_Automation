@@ -4,6 +4,25 @@
 const fs   = require('fs');
 const path = require('path');
 
+const DATA_LOG = path.resolve(process.cwd(), '.test-run-data.json');
+
+/** testName → ApiCallLog[] 맵 빌드 */
+function loadApiCallMap() {
+  try {
+    const raw = fs.readFileSync(DATA_LOG, 'utf8');
+    const arr = JSON.parse(raw);
+    const map = new Map();
+    for (const entry of arr) {
+      const key = entry.testName ?? 'unknown';
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push(entry);
+    }
+    return map;
+  } catch {
+    return new Map();
+  }
+}
+
 const CSS = `
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', 'Malgun Gothic', sans-serif; background: #f4f6fa; color: #1a1a2e; font-size: 14px; line-height: 1.6; }
@@ -50,6 +69,28 @@ const CSS = `
   .test-table tr:last-child td { border-bottom: none; }
   .test-table tr.row-fail { background: #fff8f8; }
   .test-table tr.row-skip { background: #fffbf5; }
+
+  /* ── API call data ── */
+  .api-calls { margin-top: 6px; display: flex; flex-direction: column; gap: 5px; }
+  .api-call { background: #f8faff; border: 1px solid #e0e8ff; border-radius: 6px; overflow: hidden; font-size: 12px; }
+  .api-call-header { display: flex; align-items: center; gap: 8px; padding: 5px 10px; background: #eef2ff; border-bottom: 1px solid #e0e8ff; font-family: 'Consolas', monospace; }
+  .method { font-weight: 700; font-size: 11px; padding: 2px 6px; border-radius: 3px; color: #fff; white-space: nowrap; }
+  .method-GET    { background: #2e7d32; }
+  .method-POST   { background: #1565c0; }
+  .method-PUT    { background: #e65100; }
+  .method-DELETE { background: #c62828; }
+  .method-PATCH  { background: #6a1b9a; }
+  .api-url { color: #1e3a5f; font-weight: 500; font-size: 12px; word-break: break-all; flex: 1; }
+  .api-status { font-weight: 700; font-size: 11px; padding: 2px 6px; border-radius: 3px; white-space: nowrap; }
+  .status-2xx { background: #e8f5e9; color: #2e7d32; }
+  .status-4xx { background: #fff3e0; color: #e65100; }
+  .status-5xx { background: #ffebee; color: #c62828; }
+  .api-dur  { font-size: 11px; color: #aaa; white-space: nowrap; }
+  .api-call-body { padding: 6px 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .api-call-body.single { grid-template-columns: 1fr; }
+  .data-block { font-size: 11px; }
+  .data-label { font-weight: 700; color: #888; font-size: 10px; letter-spacing: .5px; margin-bottom: 2px; }
+  .data-content { font-family: 'Consolas', monospace; background: #fff; border: 1px solid #eee; border-radius: 3px; padding: 5px 7px; white-space: pre-wrap; word-break: break-all; max-height: 120px; overflow-y: auto; color: #333; }
 
   .status-pass { color: #2e7d32; font-weight: 700; white-space: nowrap; }
   .status-fail { color: #c62828; font-weight: 700; white-space: nowrap; }
@@ -110,6 +151,7 @@ class HtmlReporter {
 
   // ─────────────────────────────────────────────────────────
   _build(results) {
+    this._apiCallMap = loadApiCallMap();
     const now     = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
     const total   = results.numTotalTests;
     const passed  = results.numPassedTests;
@@ -217,7 +259,7 @@ class HtmlReporter {
           <th style="width:46%">테스트 항목 (입력 데이터 / 기대 결과 포함)</th>
           <th style="width:8%">소요시간</th>
           <th style="width:7%">결과</th>
-          <th style="width:35%">실제 결과 / 오류 상세</th>
+          <th style="width:35%">테스트 데이터 (요청 / 응답) · 오류 상세</th>
         </tr>
       </thead>
       <tbody>
@@ -244,14 +286,18 @@ class HtmlReporter {
       ? `<span class="suite-prefix">${esc(ancestors)} › </span>${esc(title)}`
       : esc(title);
 
-    // 실패 상세
+    // API 호출 데이터
+    const apiCalls = this._apiCallMap
+      ? (this._apiCallMap.get(t.fullName) || this._apiCallMap.get(t.title) || [])
+      : [];
+    const apiCallsHtml = this._buildApiCalls(apiCalls);
+
+    // 실패/결과 상세
     let detailCell = '';
     if (status === 'failed') {
-      detailCell = this._buildFailDetail(t.failureMessages || []);
+      detailCell = apiCallsHtml + this._buildFailDetail(t.failureMessages || []);
     } else if (status === 'passed') {
-      // 통과 시 테스트명에서 기대 결과 추출 (예: "— 200" 패턴)
-      const hint = extractExpected(title);
-      detailCell = hint ? `<span style="color:#2e7d32;font-size:12px;">✓ ${esc(hint)}</span>` : '';
+      detailCell = apiCallsHtml;
     } else {
       detailCell = `<span style="color:#e65100;font-size:12px;">테스트 스킵됨</span>`;
     }
@@ -263,6 +309,56 @@ class HtmlReporter {
       <td class="${stCls}">${stLabel}</td>
       <td>${detailCell}</td>
     </tr>`;
+  }
+
+  // ─────────────────────────────────────────────────────────
+  _buildApiCalls(calls) {
+    if (!calls || calls.length === 0) return '';
+
+    const items = calls.map(c => {
+      const method    = (c.method || 'GET').toUpperCase();
+      const methodCls = `method-${method}`;
+      const statusCls = c.statusCode >= 500 ? 'status-5xx'
+                      : c.statusCode >= 400 ? 'status-4xx'
+                      : 'status-2xx';
+      const url = esc(String(c.url || '').replace(/^https?:\/\/[^/]+/, ''));
+
+      // 요청 데이터 구성
+      const reqParts = [];
+      if (c.params && Object.keys(c.params).length > 0) {
+        reqParts.push(`Query: ${JSON.stringify(c.params, null, 2)}`);
+      }
+      if (c.requestBody !== null && c.requestBody !== undefined) {
+        reqParts.push(`Body: ${JSON.stringify(c.requestBody, null, 2)}`);
+      }
+      const reqStr = reqParts.join('\n') || '(없음)';
+      const resStr = c.responseBody !== undefined
+        ? JSON.stringify(c.responseBody, null, 2)
+        : '(없음)';
+
+      const hasBoth = reqParts.length > 0;
+
+      return `<div class="api-call">
+        <div class="api-call-header">
+          <span class="method ${methodCls}">${method}</span>
+          <span class="api-url">${url}</span>
+          <span class="api-status ${statusCls}">${c.statusCode}</span>
+          <span class="api-dur">${c.durationMs}ms</span>
+        </div>
+        <div class="api-call-body${hasBoth ? '' : ' single'}">
+          ${hasBoth ? `<div class="data-block">
+            <div class="data-label">📤 요청 데이터</div>
+            <pre class="data-content">${esc(reqStr)}</pre>
+          </div>` : ''}
+          <div class="data-block">
+            <div class="data-label">📥 응답 데이터</div>
+            <pre class="data-content">${esc(resStr)}</pre>
+          </div>
+        </div>
+      </div>`;
+    }).join('\n');
+
+    return `<div class="api-calls">${items}</div>`;
   }
 
   // ─────────────────────────────────────────────────────────

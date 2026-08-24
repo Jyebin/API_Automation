@@ -5,3 +5,5 @@ dist/
 test-results.json
 coverage/
 test-report.html
+
+.test-run-data.json

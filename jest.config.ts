@@ -6,6 +6,7 @@ const config: Config = {
   rootDir: '.',
   testMatch: ['**/tests/**/*.spec.ts', '**/tests/**/*.test.ts'],
   globalSetup: './src/setup/globalSetup.ts',
+  setupFilesAfterEnv: ['./src/setup/jestSetup.ts'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
